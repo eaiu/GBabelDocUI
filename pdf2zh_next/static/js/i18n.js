@@ -99,6 +99,18 @@ const translations = {
         'settings.basic.cache.help': 'Force re-translation even if cached results exist',
         'settings.basic.btn.save': 'Save Basic Settings',
 
+        // Configuration Import/Export
+        'settings.config.title': 'Configuration Management',
+        'settings.config.export.btn': 'Export Configuration',
+        'settings.config.export.desc': 'Download your translation settings as a JSON file',
+        'settings.config.export.warning': '⚠️ Warning: The exported file contains API keys and sensitive credentials. Store it securely.',
+        'settings.config.export.success': 'Configuration exported successfully',
+        'settings.config.import.btn': 'Import Configuration',
+        'settings.config.import.desc': 'Upload a configuration file to restore settings',
+        'settings.config.import.success': 'Configuration imported successfully',
+        'settings.config.import.error': 'Failed to import configuration',
+        'settings.config.import.invalid': 'Invalid configuration file',
+
         // Registration Page
         'register.title': 'Create Account',
         'register.subtitle': 'Register a new account',
@@ -225,6 +237,18 @@ const translations = {
         'settings.basic.cache': '忽略缓存',
         'settings.basic.cache.help': '即使存在缓存结果也强制重新翻译',
         'settings.basic.btn.save': '保存基础设置',
+
+        // Configuration Import/Export
+        'settings.config.title': '配置管理',
+        'settings.config.export.btn': '导出配置',
+        'settings.config.export.desc': '将翻译设置下载为JSON文件',
+        'settings.config.export.warning': '⚠️ 警告：导出的文件包含API密钥和敏感凭据。请妥善保管。',
+        'settings.config.export.success': '配置导出成功',
+        'settings.config.import.btn': '导入配置',
+        'settings.config.import.desc': '上传配置文件以恢复设置',
+        'settings.config.import.success': '配置导入成功',
+        'settings.config.import.error': '配置导入失败',
+        'settings.config.import.invalid': '无效的配置文件',
 
         // Registration Page
         'register.title': '创建账户',

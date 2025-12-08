@@ -240,6 +240,66 @@ class APIClient {
   }
 
   /**
+   * Export settings as JSON file
+   */
+  async exportSettings() {
+    const response = await fetch(`${API_BASE_URL}/api/settings/export`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${this.token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to export settings');
+    }
+
+    // Get filename from Content-Disposition header or use default
+    const contentDisposition = response.headers.get('Content-Disposition');
+    let filename = 'translation_config.json';
+    if (contentDisposition) {
+      const match = contentDisposition.match(/filename="?([^"]+)"?/);
+      if (match) filename = match[1];
+    }
+
+    // Download file
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+    return { success: true, filename };
+  }
+
+  /**
+   * Import settings from JSON file
+   */
+  async importSettings(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_BASE_URL}/api/settings/import`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to import settings');
+    }
+
+    return response.json();
+  }
+
+  /**
    * Upload file
    */
   async uploadFile(file, onProgress) {

@@ -258,6 +258,41 @@
                             </div>
                         </div>
 
+                        <h3 class="mt-lg" data-i18n="settings.config.title">Configuration Management</h3>
+
+                        <div class="card mb-lg">
+                            <div class="card-body">
+                                <div class="alert alert-warning mb-md">
+                                    <span data-i18n="settings.config.export.warning">⚠️ Warning: The exported file
+                                        contains API keys and sensitive credentials. Store it securely.</span>
+                                </div>
+
+                                <div class="grid grid-2 gap-md">
+                                    <div>
+                                        <h4 data-i18n="settings.config.export.btn">Export Configuration</h4>
+                                        <p class="text-muted" style="font-size: var(--font-size-sm);"
+                                            data-i18n="settings.config.export.desc">Download your translation settings
+                                            as a JSON file</p>
+                                        <button class="btn btn-primary mt-sm" id="export-config-btn">
+                                            <span data-i18n="settings.config.export.btn">Export Configuration</span>
+                                        </button>
+                                    </div>
+
+                                    <div>
+                                        <h4 data-i18n="settings.config.import.btn">Import Configuration</h4>
+                                        <p class="text-muted" style="font-size: var(--font-size-sm);"
+                                            data-i18n="settings.config.import.desc">Upload a configuration file to
+                                            restore settings</p>
+                                        <input type="file" id="import-config-file" accept=".json"
+                                            style="display: none;">
+                                        <button class="btn btn-secondary mt-sm" id="import-config-btn">
+                                            <span data-i18n="settings.config.import.btn">Import Configuration</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <h3 class="mt-lg">Page Selection</h3>
 
                         <div class="form-group">
@@ -1090,6 +1125,48 @@
             } catch (error) {
                 hideLoading();
                 showError(error);
+            }
+        });
+
+        // Configuration Export/Import
+        document.getElementById('export-config-btn').addEventListener('click', async () => {
+            try {
+                showLoading(i18n.t('common.loading'));
+                await api.exportSettings();
+                hideLoading();
+                showSuccess(i18n.t('settings.config.export.success'));
+            } catch (error) {
+                hideLoading();
+                showError(error);
+            }
+        });
+
+        document.getElementById('import-config-btn').addEventListener('click', () => {
+            document.getElementById('import-config-file').click();
+        });
+
+        document.getElementById('import-config-file').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+                showLoading(i18n.t('common.loading'));
+                const result = await api.importSettings(file);
+                hideLoading();
+
+                if (result.success) {
+                    showSuccess(`${i18n.t('settings.config.import.success')} (${result.imported_count} settings)`);
+                    // Reload settings to show imported values
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                }
+            } catch (error) {
+                hideLoading();
+                showError(i18n.t('settings.config.import.error') + ': ' + error.message);
+            } finally {
+                // Reset file input
+                e.target.value = '';
             }
         });
 

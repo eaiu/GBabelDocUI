@@ -459,6 +459,98 @@ async def reset_settings(current_user: dict = Depends(get_current_user)):
     return {"success": True, "message": "Settings reset to default"}
 
 
+@app.get("/api/settings/export")
+async def export_settings(current_user: dict = Depends(get_current_user)):
+    """Export current user's settings as JSON file"""
+    user_dir = user_manager.get_user_dir(current_user['username'])
+    settings_file = user_dir / "settings.json"
+    
+    # Load current settings
+    if settings_file.exists():
+        settings = json.loads(settings_file.read_text())
+    else:
+        settings = {}
+    
+    # Create export data with metadata
+    export_data = {
+        "version": "1.0",
+        "exported_at": datetime.utcnow().isoformat(),
+        "exported_by": current_user['username'],
+        "settings": settings
+    }
+    
+    # Create temporary file for export
+    import tempfile
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False, encoding='utf-8') as f:
+        json.dump(export_data, f, indent=2, ensure_ascii=False)
+        temp_path = f.name
+    
+    # Generate filename with timestamp
+    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    filename = f"translation_config_{timestamp}.json"
+    
+    return FileResponse(
+        temp_path,
+        media_type="application/json",
+        filename=filename,
+        background=lambda: Path(temp_path).unlink()  # Cleanup temp file
+    )
+
+
+@app.post("/api/settings/import")
+async def import_settings(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Import settings from JSON file"""
+    # Validate file type
+    if not file.filename.endswith('.json'):
+        raise HTTPException(status_code=400, detail="Only JSON files are allowed")
+    
+    try:
+        # Read and parse JSON
+        content = await file.read()
+        import_data = json.loads(content.decode('utf-8'))
+        
+        # Validate structure
+        if "settings" not in import_data:
+            raise HTTPException(status_code=400, detail="Invalid configuration file: missing 'settings' field")
+        
+        # Optional: Check version compatibility
+        if "version" in import_data:
+            version = import_data["version"]
+            if version != "1.0":
+                logger.warning(f"Importing config with different version: {version}")
+        
+        # Get imported settings
+        imported_settings = import_data["settings"]
+        
+        # Save to user's settings file
+        user_dir = user_manager.get_user_dir(current_user['username'])
+        user_dir.mkdir(parents=True, exist_ok=True)
+        settings_file = user_dir / "settings.json"
+        
+        # Write settings
+        settings_file.write_text(json.dumps(imported_settings, indent=2, ensure_ascii=False))
+        
+        # Count imported settings
+        setting_count = len(imported_settings)
+        
+        return {
+            "success": True,
+            "message": f"Successfully imported {setting_count} settings",
+            "imported_count": setting_count,
+            "imported_from": import_data.get("exported_by", "unknown"),
+            "exported_at": import_data.get("exported_at", "unknown")
+        }
+        
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON file")
+    except Exception as e:
+        logger.error(f"Failed to import settings: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to import settings: {str(e)}")
+
+
 # File upload and translation endpoints
 @app.post("/api/upload")
 async def upload_file(

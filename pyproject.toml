@@ -1,6 +1,6 @@
 [project]
 name = "pdf2zh-gbabeldocui"
-version = "1.0"
+version = "1.1"
 description = "Latex PDF Translator"
 authors = [
     { name = "awwaawwa", email = "aw@funstory.ai" },

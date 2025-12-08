@@ -48,7 +48,10 @@ jobs:
             mkdocs-material-
       - run: uv sync
       - name: Copy zh_TW language file
-        run: cp docs/zh_TW.html /home/runner/work/PDFMathTranslate-next/PDFMathTranslate-next/.venv/lib/python3.13/site-packages/material/templates/partials/languages/
+        run: |
+          VENV_PATH=$(uv run python -c "import sys; import os; print(os.path.dirname(sys.executable))")
+          SITE_PACKAGES=$(uv run python -c "import site; print(site.getsitepackages()[0])")
+          cp docs/zh_TW.html $SITE_PACKAGES/material/templates/partials/languages/
       - run: uv run mkdocs gh-deploy --force
   clear-cache:
     needs:
