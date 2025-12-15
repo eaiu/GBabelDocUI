@@ -740,6 +740,23 @@
             customGroup.style.display = e.target.value === 'custom' ? 'block' : 'none';
         });
 
+        // Validation: Prevent both no-mono and no-dual from being checked
+        document.getElementById('no-mono').addEventListener('change', (e) => {
+            const noDualCheckbox = document.getElementById('no-dual');
+            if (e.target.checked && noDualCheckbox.checked) {
+                e.target.checked = false;
+                showAlert('Cannot disable both mono and dual output modes. At least one must be enabled.', 'error');
+            }
+        });
+
+        document.getElementById('no-dual').addEventListener('change', (e) => {
+            const noMonoCheckbox = document.getElementById('no-mono');
+            if (e.target.checked && noMonoCheckbox.checked) {
+                e.target.checked = false;
+                showAlert('Cannot disable both mono and dual output modes. At least one must be enabled.', 'error');
+            }
+        });
+
         // Split short lines toggle
         document.getElementById('split-short-lines').addEventListener('change', (e) => {
             document.getElementById('split-factor-group').style.display = e.target.checked ? 'block' : 'none';

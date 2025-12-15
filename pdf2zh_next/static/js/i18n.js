@@ -45,8 +45,8 @@ const translations = {
         'upload.progress.title': 'Translation Progress',
         'upload.progress.init': 'Initializing...',
         'upload.result.title': 'Translation Complete!',
-        'upload.result.mono': '📥 Download Translation Only',
-        'upload.result.dual': '📥 Download Bilingual',
+        'upload.result.mono': 'Download Translation Only',
+        'upload.result.dual': 'Download Bilingual',
         'upload.result.new': 'Start New Translation',
         'upload.history.title': 'Translation History',
         'upload.history.subtitle': 'Your recent translations',
@@ -184,8 +184,8 @@ const translations = {
         'upload.progress.title': '翻译进度',
         'upload.progress.init': '初始化中...',
         'upload.result.title': '翻译完成！',
-        'upload.result.mono': '📥 下载译文',
-        'upload.result.dual': '📥 下载双语版',
+        'upload.result.mono': '下载译文',
+        'upload.result.dual': '下载双语版',
         'upload.result.new': '开始新翻译',
         'upload.history.title': '翻译历史',
         'upload.history.subtitle': '您最近的翻译',
@@ -338,8 +338,12 @@ function initI18n() {
     const nav = document.querySelector('.nav-links');
     if (nav && !document.getElementById('lang-selector')) {
         const langItem = document.createElement('li');
+        langItem.style.display = 'flex';
+        langItem.style.alignItems = 'center';
+        langItem.style.gap = '0.5rem';
         langItem.innerHTML = `
-            <select id="lang-selector" class="form-select" style="padding: 0.5rem; font-size: 0.875rem; background: transparent; border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); cursor: pointer;">
+            <i class="fa-solid fa-language" style="color: var(--text-secondary); font-size: 1.1rem;"></i>
+            <select id="lang-selector" class="form-select">
                 <option value="en">English</option>
                 <option value="zh">中文</option>
             </select>

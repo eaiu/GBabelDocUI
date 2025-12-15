@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload - PDFMathTranslate</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="/static/js/i18n.js"></script>
 </head>
 
@@ -30,7 +31,7 @@
         <main class="main-content">
             <div class="container">
                 <div class="grid grid-2">
-                    <!-- Upload Section -->
+                    <!-- Upload Section (Left Column) -->
                     <div>
                         <div class="card">
                             <div class="card-header">
@@ -42,7 +43,9 @@
                             <div class="card-body">
                                 <!-- Upload Zone -->
                                 <div class="upload-zone" id="upload-zone">
-                                    <div class="upload-icon">📄</div>
+                                    <div class="upload-icon">
+                                        <i class="fas fa-file-pdf" style="font-size: 48px;"></i>
+                                    </div>
                                     <p class="upload-text" data-i18n="upload.drag">Drag and drop your PDF here</p>
                                     <p class="upload-hint" data-i18n="upload.browse">or click to browse</p>
                                     <input type="file" id="file-input" accept=".pdf" style="display: none;">
@@ -84,6 +87,24 @@
                                 </button>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Right Column: History, Progress, and Result -->
+                    <div>
+                        <!-- History Section (Scrollable) -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title" data-i18n="upload.history.title">Translation History</h2>
+                                <p class="card-subtitle" data-i18n="upload.history.subtitle">Your recent translations
+                                </p>
+                            </div>
+                            <div class="card-body">
+                                <div id="history-list" class="history-scrollable">
+                                    <p class="text-center text-muted" data-i18n="upload.history.empty">No translations
+                                        yet</p>
+                                </div>
+                            </div>
+                        </div>
 
                         <!-- Progress Card -->
                         <div class="card mt-lg" id="progress-card" style="display: none;">
@@ -100,6 +121,7 @@
                             </div>
                         </div>
 
+                        <!-- Result Card -->
                         <div class="card mt-lg" id="result-card" style="display: none;">
                             <div class="card-header">
                                 <h3 class="card-title" data-i18n="upload.result.title">Translation Complete!</h3>
@@ -108,34 +130,19 @@
                                 <div class="flex gap-md">
                                     <button class="btn btn-success flex-1" id="download-mono-btn" style="display: none;"
                                         data-i18n="upload.result.mono">
-                                        📥 Download Translation Only
+                                        <i class="fas fa-download"></i>
+                                        <span>Download Translation Only</span>
                                     </button>
                                     <button class="btn btn-success flex-1" id="download-dual-btn" style="display: none;"
                                         data-i18n="upload.result.dual">
-                                        📥 Download Bilingual
+                                        <i class="fas fa-exchange-alt"></i>
+                                        <span>Download Bilingual</span>
                                     </button>
                                 </div>
                                 <button class="btn btn-secondary btn-block mt-md" id="new-translation-btn"
                                     data-i18n="upload.result.new">
                                     Start New Translation
                                 </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- History Section -->
-                    <div>
-                        <div class="card">
-                            <div class="card-header">
-                                <h2 class="card-title" data-i18n="upload.history.title">Translation History</h2>
-                                <p class="card-subtitle" data-i18n="upload.history.subtitle">Your recent translations
-                                </p>
-                            </div>
-                            <div class="card-body">
-                                <div id="history-list">
-                                    <p class="text-center text-muted" data-i18n="upload.history.empty">No translations
-                                        yet</p>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -401,7 +408,25 @@
 
                 historyList.innerHTML = history.map(item => {
                     const statusColor = item.status === 'completed' ? 'var(--accent-success)' : item.status === 'failed' ? 'var(--accent-error)' : 'var(--accent-warning)';
-                    const originalName = item.original_filename || item.filename?.split('_').slice(1).join('_') || item.filename || 'Untitled';
+
+                    // Extract original filename by removing UUID prefix
+                    // Format is usually: {uuid}_{original_filename}
+                    let displayName = item.original_filename || item.filename || 'Untitled';
+
+                    // If filename contains underscore, try to extract the part after the first UUID-like segment
+                    if (displayName.includes('_')) {
+                        const parts = displayName.split('_');
+                        // Check if first part looks like a UUID (contains hyphens and is long)
+                        if (parts[0].includes('-') && parts[0].length > 20) {
+                            // Remove the UUID part and rejoin the rest
+                            displayName = parts.slice(1).join('_');
+                        }
+                    }
+
+                    // Fallback: if still looks like it has UUID, just use the last part
+                    if (displayName.length === 0 || displayName === '_') {
+                        displayName = item.filename || 'Untitled';
+                    }
 
                     return `
                     <div class="history-item" style="display: flex; align-items: stretch; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 0.75rem; overflow: hidden; border: 1px solid var(--border-color);">
@@ -412,16 +437,22 @@
                         <div style="flex: 1; padding: 1rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem;">
                             <!-- Filename -->
                             <div style="flex: 1; min-width: 150px;">
-                                <div style="font-weight: 500; word-break: break-all; font-size: 0.9rem;" title="${item.filename}">${originalName}</div>
+                                <div style="font-weight: 500; word-break: break-all; font-size: 0.9rem;" title="${item.filename}">${displayName}</div>
                             </div>
                             
                             <!-- Action buttons -->
                             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                                 ${item.status === 'completed' && item.mono_path ?
-                            `<button class="btn btn-sm" style="background: var(--accent-primary); color: white;" onclick="downloadFile('mono', '${item.task_id}')">${i18n.t('upload.result.mono').replace('📥 ', '')}</button>` : ''}
+                            `<button class="btn-icon btn-icon-primary" onclick="downloadFile('mono', '${item.task_id}')" title="${i18n.t('upload.result.mono')}">
+                                <i class="fas fa-download"></i>
+                            </button>` : ''}
                                 ${item.status === 'completed' && item.dual_path ?
-                            `<button class="btn btn-sm" style="background: #6c757d; color: white;" onclick="downloadFile('dual', '${item.task_id}')">${i18n.t('upload.result.dual').replace('📥 ', '')}</button>` : ''}
-                                <button class="btn btn-sm" style="background: var(--accent-error); color: white;" onclick="deleteHistoryItem('${item.task_id}')" title="${i18n.t('common.delete')}">🗑️</button>
+                            `<button class="btn-icon btn-icon-secondary" onclick="downloadFile('dual', '${item.task_id}')" title="${i18n.t('upload.result.dual')}">
+                                <i class="fas fa-exchange-alt"></i>
+                            </button>` : ''}
+                                <button class="btn-icon btn-icon-danger" onclick="deleteHistoryItem('${item.task_id}')" title="${i18n.t('common.delete')}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
                             </div>
                             
                             <!-- Timestamp -->
