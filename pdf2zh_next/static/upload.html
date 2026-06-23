@@ -344,42 +344,39 @@
                 return;
             }
 
+            const token = localStorage.getItem('auth_token');
+            const downloadUrl = `/api/translate/download/${downloadTaskId}?file_type=${fileType}&token=${encodeURIComponent(token)}`;
+
+            // Use direct link approach - more reliable for large files
+            // First, try to verify the download is available
             try {
-                const token = localStorage.getItem('auth_token');
-                const response = await fetch(`/api/translate/download/${downloadTaskId}?file_type=${fileType}`, {
+                const headResponse = await fetch(downloadUrl, {
+                    method: 'HEAD',
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
                 });
 
-                if (!response.ok) {
-                    throw new Error('Download failed');
+                if (!headResponse.ok) {
+                    throw new Error('File not available');
                 }
-
-                // Get filename from Content-Disposition header or use default
-                const contentDisposition = response.headers.get('Content-Disposition');
-                let filename = `translated_${fileType}.pdf`;
-                if (contentDisposition) {
-                    const match = contentDisposition.match(/filename="?([^";\n]+)"?/);
-                    if (match) {
-                        filename = match[1];
-                    }
-                }
-
-                // Create blob and download
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
             } catch (error) {
-                console.error('Download error:', error);
+                console.error('Download check failed:', error);
                 alert('Download failed: ' + error.message);
+                return;
             }
+
+            // Create a hidden link and trigger download
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.style.display = 'none';
+
+            // Try to get filename from API or use default
+            a.download = `translated_${fileType}.pdf`;
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
 
         // New translation button
